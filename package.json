@@ -2,9 +2,10 @@
   "name": "israeli-insurance-scrapers",
   "version": "0.0.1",
   "description": "Provide scrapers for all major Israeli isurance companies",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "node_modules/babel-cli/bin/babel.js src --out-dir lib"
   },
   "repository": {
     "type": "git",
@@ -20,5 +21,15 @@
   "bugs": {
     "url": "https://github.com/eshaham/israeli-insurance-scrapers/issues"
   },
-  "homepage": "https://github.com/eshaham/israeli-insurance-scrapers#readme"
+  "homepage": "https://github.com/eshaham/israeli-insurance-scrapers#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-arrow-functions": "^6.22.0",
+    "babel-plugin-transform-es2015-block-scoping": "^6.26.0",
+    "babel-plugin-transform-es2015-shorthand-properties": "^6.24.1",
+    "babel-preset-env": "^1.6.1"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
+  }
 }
