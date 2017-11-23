@@ -8,6 +8,9 @@
     "lint": "eslint src",
     "prepublishOnly": "node_modules/babel-cli/bin/babel.js src --out-dir lib"
   },
+  "pre-commit": [
+    "lint"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eshaham/israeli-insurance-scrapers.git"
@@ -31,7 +34,8 @@
     "babel-preset-env": "^1.6.1",
     "eslint": "^4.11.0",
     "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.8.0"
+    "eslint-plugin-import": "^2.8.0",
+    "pre-commit": "^1.2.2"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0"
