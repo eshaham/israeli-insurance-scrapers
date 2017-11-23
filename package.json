@@ -1,0 +1,24 @@
+{
+  "name": "israeli-insurance-scrapers",
+  "version": "0.0.1",
+  "description": "Provide scrapers for all major Israeli isurance companies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eshaham/israeli-insurance-scrapers.git"
+  },
+  "keywords": [
+    "israel",
+    "israeli isurance",
+    "israeli isurance scraper"
+  ],
+  "author": "Elad Shaham",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eshaham/israeli-insurance-scrapers/issues"
+  },
+  "homepage": "https://github.com/eshaham/israeli-insurance-scrapers#readme"
+}
