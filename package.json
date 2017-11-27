@@ -38,6 +38,7 @@
     "pre-commit": "^1.2.2"
   },
   "dependencies": {
-    "babel-polyfill": "^6.26.0"
+    "babel-polyfill": "^6.26.0",
+    "puppeteer": "^0.13.0"
   }
 }
