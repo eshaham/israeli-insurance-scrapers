@@ -52,7 +52,12 @@ function getPossibleLoginResults() {
   return urls;
 }
 
-async function getInsuranceData(page, lifeInsuranceRow) {
+function getRowsSelector(parentId) {
+  const tableSelector = `#${parentId} table.MagorViewGrids`;
+  return `${tableSelector} tr.BkNormalRow, ${tableSelector} tr.BkalternatRow`;
+}
+
+async function getLifeInsuranceData(page, lifeInsuranceRow) {
   const lifeInsuranceColumns = await lifeInsuranceRow.$$('td');
 
   const insuranceType = await page.evaluate((td) => {
@@ -104,20 +109,73 @@ async function getInsuranceData(page, lifeInsuranceRow) {
   };
 }
 
-async function getAccountData(page) {
-  const tableSelector = '#LifeDiv table.MagorViewGrids';
-  const rowsSelector = `${tableSelector} tr.BkNormalRow, ${tableSelector} tr.BkalternatRow`;
+async function getLifeInsurances(page) {
+  const rowsSelector = getRowsSelector('LifeDiv');
   const lifeInsuranceRows = await page.$$(rowsSelector);
 
   const lifeInsuranceResults = [];
   for (let i = 0; i < lifeInsuranceRows.length; i += 1) {
-    lifeInsuranceResults.push(getInsuranceData(page, lifeInsuranceRows[i]));
+    lifeInsuranceResults.push(getLifeInsuranceData(page, lifeInsuranceRows[i]));
   }
-  const lifeInsurances = await Promise.all(lifeInsuranceResults);
+  return Promise.all(lifeInsuranceResults);
+}
+
+async function getPensionFundData(page, pensionFundRow) {
+  const pensionFundColumns = await pensionFundRow.$$('td');
+
+  const fundNameAnchor = await pensionFundColumns[0].$('a');
+  const fundName = await page.evaluate((anchor) => {
+    return anchor.innerText;
+  }, fundNameAnchor);
+  const link = await page.evaluate((anchor) => {
+    return anchor.getAttribute('href');
+  }, fundNameAnchor);
+
+  const trackName = await page.evaluate((td) => {
+    return td.innerText;
+  }, pensionFundColumns[1]);
+
+  const startDateStr = await page.evaluate((td) => {
+    return td.innerText;
+  }, pensionFundColumns[2]);
+
+  const proceedsValue = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, pensionFundColumns[3]);
+
+  const accumulatedValue = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, pensionFundColumns[4]);
+
+  return {
+    fundName,
+    link,
+    trackName,
+    startDateStr,
+    proceedsValue,
+    accumulatedValue,
+  };
+}
+
+async function getPensionFunds(page) {
+  const rowsSelector = getRowsSelector('PensionDiv');
+  const pensionFundRows = await page.$$(rowsSelector);
+
+  const pensionFundResults = [];
+  for (let i = 0; i < pensionFundRows.length; i += 1) {
+    pensionFundResults.push(getPensionFundData(page, pensionFundRows[i]));
+  }
+  return Promise.all(pensionFundResults);
+}
+
+async function getAccountData(page) {
+  const lifeInsurances = await getLifeInsurances(page);
+  const pensionFunds = await getPensionFunds(page);
 
   return {
     success: true,
     lifeInsurances,
+    pensionFunds,
   };
 }
 
