@@ -68,7 +68,16 @@ class BaseScraper {
     }
 
     let scrapeResult;
-    if (!loginResult.success) {
+    if (loginResult.success) {
+      try {
+        scrapeResult = await this.fetchData();
+      } catch (e) {
+        scrapeResult =
+          e.timeout ?
+            createTimeoutError(e.message) :
+            createGenericNavigationError(e.message);
+      }
+    } else {
       scrapeResult = loginResult;
     }
 
@@ -117,6 +126,10 @@ class BaseScraper {
     const current = await this.page.url();
     const loginResult = getKeyByValue(options.possibleResults, current);
     return handleLoginResult(this, loginResult);
+  }
+
+  fetchData() {
+    throw new Error(`fetchData() is not created in ${this.options.companyId}`);
   }
 
   async terminate() {

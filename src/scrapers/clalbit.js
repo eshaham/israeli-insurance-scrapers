@@ -52,6 +52,75 @@ function getPossibleLoginResults() {
   return urls;
 }
 
+async function getInsuranceData(page, lifeInsuranceRow) {
+  const lifeInsuranceColumns = await lifeInsuranceRow.$$('td');
+
+  const insuranceType = await page.evaluate((td) => {
+    return td.innerText;
+  }, lifeInsuranceColumns[0]);
+
+  const productName = await page.evaluate((td) => {
+    return td.innerText;
+  }, lifeInsuranceColumns[1]);
+
+  const insuranceNumberAnchor = await lifeInsuranceColumns[3].$('a');
+  const insuranceNumber = await page.evaluate((anchor) => {
+    return Number(anchor.innerText);
+  }, insuranceNumberAnchor);
+  const link = await page.evaluate((anchor) => {
+    return anchor.getAttribute('href');
+  }, insuranceNumberAnchor);
+
+  const startDateStr = await page.evaluate((td) => {
+    return td.innerText;
+  }, lifeInsuranceColumns[4]);
+
+  const endDateStr = await page.evaluate((td) => {
+    return td.innerText;
+  }, lifeInsuranceColumns[5]);
+
+  const proceedsValue = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, lifeInsuranceColumns[6]);
+
+  const liquidationValue = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, lifeInsuranceColumns[7]);
+
+  const statusStr = await page.evaluate((td) => {
+    return td.innerText;
+  }, lifeInsuranceColumns[9]);
+
+  return {
+    insuranceType,
+    productName,
+    insuranceNumber,
+    link,
+    startDateStr,
+    endDateStr,
+    proceedsValue,
+    liquidationValue,
+    statusStr,
+  };
+}
+
+async function getAccountData(page) {
+  const tableSelector = '#LifeDiv table.MagorViewGrids';
+  const rowsSelector = `${tableSelector} tr.BkNormalRow, ${tableSelector} tr.BkalternatRow`;
+  const lifeInsuranceRows = await page.$$(rowsSelector);
+
+  const lifeInsuranceResults = [];
+  for (let i = 0; i < lifeInsuranceRows.length; i += 1) {
+    lifeInsuranceResults.push(getInsuranceData(page, lifeInsuranceRows[i]));
+  }
+  const lifeInsurances = await Promise.all(lifeInsuranceResults);
+
+  return {
+    success: true,
+    lifeInsurances,
+  };
+}
+
 class ClalbitScraper extends BaseScraper {
   constructor(options) {
     super(options);
@@ -67,6 +136,10 @@ class ClalbitScraper extends BaseScraper {
       submitButtonId,
       possibleResults: getPossibleLoginResults(),
     };
+  }
+
+  async fetchData() {
+    return getAccountData(this.page);
   }
 }
 
