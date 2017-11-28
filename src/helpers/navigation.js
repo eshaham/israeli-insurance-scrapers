@@ -1,15 +1,15 @@
 import waitUntil from './waiting';
 
-const NAVIGATION_ERRORS = {
+export const NAVIGATION_ERRORS = {
   TIMEOUT: 'TIMEOUT',
   GENERIC: 'GENERIC',
 };
 
-async function waitForNavigation(page) {
+export async function waitForNavigation(page) {
   await page.waitForNavigation();
 }
 
-async function waitForRedirect(page, timeout = 20000) {
+export async function waitForRedirect(page, timeout = 20000) {
   const initial = await page.url();
   try {
     await waitUntil(async () => {
@@ -24,5 +24,3 @@ async function waitForRedirect(page, timeout = 20000) {
     throw e;
   }
 }
-
-export { waitForNavigation, waitForRedirect, NAVIGATION_ERRORS };

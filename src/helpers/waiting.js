@@ -14,7 +14,7 @@ function timeoutPromise(ms, promise, description) {
   ]);
 }
 
-function waitUntil(asyncTest, description = null, timeout = 10000, interval = 100) {
+export default function waitUntil(asyncTest, description = null, timeout = 10000, interval = 100) {
   const promise = new Promise((resolve, reject) => {
     function wait() {
       asyncTest().then((value) => {
@@ -31,5 +31,3 @@ function waitUntil(asyncTest, description = null, timeout = 10000, interval = 10
   });
   return timeoutPromise(timeout, promise, description);
 }
-
-export default waitUntil;
