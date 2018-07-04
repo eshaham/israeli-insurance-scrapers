@@ -1,6 +1,8 @@
 import { LOGIN_RESULT } from '../constants';
+import runSequencially from '../helpers/promise';
+import { waitUntilElementFoundByClass } from '../helpers/elements-interactions';
+import { waitForNavigation } from '../helpers/navigation';
 import BaseScraper from './base-scraper';
-
 
 const BASE_URL = 'https://www.clalbit.co.il';
 
@@ -52,7 +54,121 @@ function getPossibleLoginResults() {
   return urls;
 }
 
-function getRowsSelector(parentId) {
+async function getDepositData(page, depositRow) {
+  const depositColumns = await depositRow.$$('td');
+
+  const nameNumberAnchor = await depositColumns[0].$('a');
+  const nameNumber = await page.evaluate((anchor) => {
+    return anchor.innerText;
+  }, nameNumberAnchor);
+  const link = await page.evaluate((anchor) => {
+    return anchor.getAttribute('href');
+  }, nameNumberAnchor);
+
+  const dateStr = await page.evaluate((td) => {
+    return td.innerText;
+  }, depositColumns[2]);
+
+  const employeePensionPayment = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[3]);
+
+  const employeeOtherPayment = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[4]);
+
+  const employeeIncomeProtectionInsurance = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[5]);
+
+  const employerSeverencesPayment = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[6]);
+
+  const employerPensionPayment = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[7]);
+
+  const employerOtherPayment = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[8]);
+
+  const employerIncomeProtectionInsurance = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[9]);
+
+  const totalPayments = await page.evaluate((td) => {
+    return Number(td.innerText.replace(',', ''));
+  }, depositColumns[10]);
+
+  return {
+    nameNumber,
+    link,
+    dateStr,
+    employeePensionPayment,
+    employeeOtherPayment,
+    employeeIncomeProtectionInsurance,
+    employerSeverencesPayment,
+    employerPensionPayment,
+    employerOtherPayment,
+    employerIncomeProtectionInsurance,
+    totalPayments,
+  };
+}
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function getDepositsData(page, pageIndex) {
+  console.log('here1');
+  if (pageIndex > 0) {
+    await waitUntilElementFoundByClass(page, 'PagerButton', true);
+    console.log('here2');
+    const buttons = await page.$$('.Pager .PagerButton');
+    await buttons[pageIndex].click();
+    console.log('here3');
+    // await waitForNavigation(page);
+    console.log('here4');
+  }
+  await waitUntilElementFoundByClass(page, 'AllPolicies table.BasePortfolioGrid tr.DRow');
+  console.log('here5');
+
+  const depositsRows = await page.$$('.AllPolicies table.BasePortfolioGrid tr.DRow');
+  const depositResults = [];
+  for (let i = 0; i < depositsRows.length; i += 1) {
+    depositResults.push(getDepositData(page, depositsRows[i]));
+  }
+  return Promise.all(depositResults);
+}
+
+async function getDepositReports(page) {
+  const url = `${BASE_URL}/portfolio/personalreports/insdepositing/Pages/default.aspx`;
+  await page.goto(url);
+  await waitUntilElementFoundByClass(page, 'PortfolioDepositsByDatesWP');
+
+  const searchArea = await page.$('.PortfolioDepositsByDatesWP');
+  const yearRadioButton = await searchArea.$('input[type=radio][value=ctlRdbYearRange]');
+  await yearRadioButton.click();
+  const submitButton = await searchArea.$('input.NormalTxt');
+  await submitButton.click();
+
+  await waitForNavigation(page);
+  await waitUntilElementFoundByClass(page, 'PagerButton');
+  const buttons = await page.$$('.Pager .PagerButton');
+  const numPages = buttons.length - 1;
+
+  const results = [];
+  for (let i = 0; i < numPages; i += 1) {
+    const result = await getDepositsData(page, i);
+    results.push(result);
+  }
+  return results;
+}
+
+function getDashboardRowsSelector(parentId) {
   const tableSelector = `#${parentId} table.MagorViewGrids`;
   return `${tableSelector} tr.BkNormalRow, ${tableSelector} tr.BkalternatRow`;
 }
@@ -110,7 +226,7 @@ async function getLifeInsuranceData(page, lifeInsuranceRow) {
 }
 
 async function getLifeInsurances(page) {
-  const rowsSelector = getRowsSelector('LifeDiv');
+  const rowsSelector = getDashboardRowsSelector('LifeDiv');
   const lifeInsuranceRows = await page.$$(rowsSelector);
 
   const lifeInsuranceResults = [];
@@ -158,7 +274,7 @@ async function getPensionFundData(page, pensionFundRow) {
 }
 
 async function getPensionFunds(page) {
-  const rowsSelector = getRowsSelector('PensionDiv');
+  const rowsSelector = getDashboardRowsSelector('PensionDiv');
   const pensionFundRows = await page.$$(rowsSelector);
 
   const pensionFundResults = [];
@@ -171,6 +287,8 @@ async function getPensionFunds(page) {
 async function getAccountData(page) {
   const lifeInsurances = await getLifeInsurances(page);
   const pensionFunds = await getPensionFunds(page);
+  const depositReports = await getDepositReports(page);
+  console.log(depositReports);
 
   return {
     success: true,

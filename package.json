@@ -39,6 +39,6 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "puppeteer": "^0.13.0"
+    "puppeteer": "GoogleChrome/puppeteer"
   }
 }
